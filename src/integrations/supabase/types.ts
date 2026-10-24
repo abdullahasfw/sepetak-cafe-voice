@@ -14,16 +14,97 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      reviews: {
+        Row: {
+          categories: string[]
+          comment: string
+          created_at: string
+          customer_name: string | null
+          id: string
+          is_anonymous: boolean
+          is_public: boolean
+          rating: number
+          staff_feedback: string | null
+          status: Database["public"]["Enums"]["review_status"]
+          suggestion: string | null
+        }
+        Insert: {
+          categories?: string[]
+          comment: string
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          is_anonymous?: boolean
+          is_public?: boolean
+          rating: number
+          staff_feedback?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          suggestion?: string | null
+        }
+        Update: {
+          categories?: string[]
+          comment?: string
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          is_anonymous?: boolean
+          is_public?: boolean
+          rating?: number
+          staff_feedback?: string | null
+          status?: Database["public"]["Enums"]["review_status"]
+          suggestion?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_exists: { Args: never; Returns: boolean }
+      get_public_reviews: {
+        Args: never
+        Returns: {
+          categories: string[]
+          comment: string
+          created_at: string
+          display_name: string
+          id: string
+          rating: number
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
+      review_status: "baru" | "ditangani" | "selesai"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +231,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+      review_status: ["baru", "ditangani", "selesai"],
+    },
   },
 } as const
