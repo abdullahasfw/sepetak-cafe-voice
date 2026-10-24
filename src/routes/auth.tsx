@@ -46,10 +46,13 @@ function AuthPage() {
     });
   }, [navigate]);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     const parsed = credSchema.safeParse({ email, password: mode === "login" ? password.padEnd(10, " ") : password });
-    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Data tidak valid");
+      return;
+    }
     setLoading(true);
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
