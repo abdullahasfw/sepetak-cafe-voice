@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BeriUlasanRouteImport } from './routes/beri-ulasan'
+import { Route as TestimoniRouteImport } from './routes/testimoni'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BeriUlasanRoute = BeriUlasanRouteImport.update({
+  id: '/beri-ulasan',
+  path: '/beri-ulasan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestimoniRoute = TestimoniRouteImport.update({
+  id: '/testimoni',
+  path: '/testimoni',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/beri-ulasan': typeof BeriUlasanRoute
+  '/testimoni': typeof TestimoniRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/beri-ulasan': typeof BeriUlasanRoute
+  '/testimoni': typeof TestimoniRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/beri-ulasan': typeof BeriUlasanRoute
+  '/testimoni': typeof TestimoniRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/beri-ulasan' | '/testimoni'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/beri-ulasan' | '/testimoni'
+  id: '__root__' | '/' | '/beri-ulasan' | '/testimoni'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BeriUlasanRoute: typeof BeriUlasanRoute
+  TestimoniRoute: typeof TestimoniRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/beri-ulasan': {
+      id: '/beri-ulasan'
+      path: '/beri-ulasan'
+      fullPath: '/beri-ulasan'
+      preLoaderRoute: typeof BeriUlasanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/testimoni': {
+      id: '/testimoni'
+      path: '/testimoni'
+      fullPath: '/testimoni'
+      preLoaderRoute: typeof TestimoniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BeriUlasanRoute: BeriUlasanRoute,
+  TestimoniRoute: TestimoniRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
