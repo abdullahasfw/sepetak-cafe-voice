@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckCircle2, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Loader2, Lock, MapPin, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { StarRating } from "@/components/site/StarRating";
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { getGoogleMapsLink, validateCustomerLocation } from "@/lib/location";
 
 export const Route = createFileRoute("/beri-ulasan")({
   head: () => ({
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/beri-ulasan")({
 });
 
 const RATING_TEXT = ["", "Sangat kurang", "Kurang", "Cukup", "Baik", "Luar biasa"];
+type LocationStatus = "idle" | "checking" | "ok" | "denied" | "blocked" | "unavailable";
 
 function BeriUlasan() {
   const [rating, setRating] = useState(0);
@@ -38,23 +40,101 @@ function BeriUlasan() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
+  const [locationMessage, setLocationMessage] = useState(
+    "Untuk mengirim ulasan, beri izin lokasi agar kami dapat memastikan Anda berada di area Sepetak Cafe.",
+  );
+  const [locationDistance, setLocationDistance] = useState<number | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
 
   const toggleCat = (v: CategoryValue) =>
     setCategories((c) => (c.includes(v) ? c.filter((x) => x !== v) : [...c, v]));
 
+  async function requestLocation() {
+    if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+      const message = "Browser tidak mendukung geolocation. Aktifkan lokasi di perangkat dan coba lagi.";
+      setLocationStatus("unavailable");
+      setLocationMessage(message);
+      toast.error(message);
+      return false;
+    }
+
+    setLocationStatus("checking");
+    setLocationMessage("Meminta izin lokasi...");
+
+    return await new Promise<boolean>((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const result = validateCustomerLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+          });
+
+          if (result.ok) {
+            setLocationStatus("ok");
+            setLocationDistance(result.distance);
+            setLocationAccuracy(position.coords.accuracy ?? null);
+            setLocationMessage(`Lokasi valid. Jarak Anda ke Sepetak Cafe: ${Math.round(result.distance)} meter.`);
+            resolve(true);
+            return;
+          }
+
+          setLocationStatus("blocked");
+          setLocationDistance(result.distance ?? null);
+          setLocationAccuracy(position.coords.accuracy ?? null);
+          setLocationMessage(result.message);
+          toast.error(result.message);
+          resolve(false);
+        },
+        (error) => {
+          const message =
+            error.code === error.PERMISSION_DENIED
+              ? "Izin lokasi ditolak. Aktifkan lokasi perangkat dan coba lagi."
+              : "Lokasi tidak tersedia. Aktifkan lokasi perangkat dan coba lagi.";
+
+          setLocationStatus("denied");
+          setLocationMessage(message);
+          toast.error(message);
+          resolve(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
+        },
+      );
+    });
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+
+    const locationAllowed = await requestLocation();
+    if (!locationAllowed) {
+      return;
+    }
+
     const parsed = reviewSchema.safeParse({
-      rating, categories, comment, suggestion, isAnonymous, customerName,
+      rating,
+      categories,
+      comment,
+      suggestion,
+      isAnonymous,
+      customerName,
       staffFeedback: staffOpen ? staffFeedback : "",
     });
+
     if (!parsed.success) {
       const errs: Record<string, string> = {};
-      parsed.error.issues.forEach((i) => { errs[String(i.path[0])] ??= i.message; });
+      parsed.error.issues.forEach((i) => {
+        errs[String(i.path[0])] ??= i.message;
+      });
       setErrors(errs);
       toast.error("Mohon lengkapi formulir terlebih dahulu.");
       return;
     }
+
     setErrors({});
     setLoading(true);
     const d = parsed.data;
@@ -111,6 +191,50 @@ function BeriUlasan() {
         </p>
 
         <form onSubmit={submit} className="mt-10 space-y-5" noValidate>
+          <div className={block}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Label className="text-base font-semibold">Lokasi Anda</Label>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Ulasan hanya dapat dikirim saat Anda berada di area Sepetak Cafe.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={requestLocation}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium transition hover:bg-secondary"
+              >
+                <MapPin className="h-4 w-4" />
+                Aktifkan lokasi
+              </button>
+            </div>
+            <div className="mt-4 rounded-xl border border-border bg-muted/60 p-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">
+                    {locationStatus === "ok" ? "Lokasi valid" : locationStatus === "checking" ? "Memeriksa lokasi..." : "Lokasi belum tersedia"}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{locationMessage}</p>
+                  {locationDistance !== null && (
+                    <p className="mt-2 text-xs text-muted-foreground">Jarak terukur: {Math.round(locationDistance)} meter</p>
+                  )}
+                  {locationAccuracy !== null && (
+                    <p className="mt-1 text-xs text-muted-foreground">Akurasi: ±{Math.round(locationAccuracy)} meter</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <a
+              href={getGoogleMapsLink()}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+            >
+              <MapPin className="h-4 w-4" /> Lihat Petunjuk Arah
+            </a>
+          </div>
+
           <div className={block}>
             <Label className="text-base font-semibold">Rating keseluruhan *</Label>
             <div className="mt-3 flex flex-wrap items-center gap-4">
