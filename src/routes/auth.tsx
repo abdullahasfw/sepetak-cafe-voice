@@ -57,12 +57,16 @@ function AuthPage() {
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       setLoading(false);
-      if (error) return toast.error("Email atau kata sandi salah, atau email belum dikonfirmasi.");
+      if (error) {
+        toast.error("Email atau kata sandi salah, atau email belum dikonfirmasi.");
+        return;
+      }
       navigate({ to: "/admin", replace: true });
     } else {
       if (password !== confirm) {
         setLoading(false);
-        return toast.error("Konfirmasi kata sandi tidak cocok.");
+        toast.error("Konfirmasi kata sandi tidak cocok.");
+        return;
       }
       const { error } = await supabase.auth.signUp({
         email: email.trim(),
@@ -70,7 +74,10 @@ function AuthPage() {
         options: { emailRedirectTo: `${window.location.origin}/auth` },
       });
       setLoading(false);
-      if (error) return toast.error(error.message);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
       setSent(true);
     }
   }

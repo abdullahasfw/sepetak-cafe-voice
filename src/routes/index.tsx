@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Coffee, HeartHandshake, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Coffee, HeartHandshake, MapPin, ShieldCheck, Sparkles } from "lucide-react";
 import heroImg from "@/assets/hero-cafe.jpg";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ReviewCard } from "@/components/site/ReviewCard";
 import { publicReviewsQuery } from "@/lib/public-reviews";
+import { SEPETAK_CAFE_COORDS, getGoogleMapsLink } from "@/lib/location";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -13,6 +14,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Bagikan pengalaman Anda di Sepetak Cafe Banda Aceh. Setiap ulasan dan saran membantu kami menjadi lebih baik." },
       { property: "og:title", content: "Sepetak Voice — Ulasan Sepetak Cafe" },
       { property: "og:description", content: "Bagikan pengalaman Anda di Sepetak Cafe Banda Aceh." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -114,6 +117,37 @@ function Index() {
             <p className="mt-2 text-sm text-muted-foreground">Jadilah yang pertama berbagi pengalaman di Sepetak.</p>
           </div>
         )}
+      </section>
+
+      <section className="mx-auto mt-24 max-w-6xl px-5">
+        <div className="grid items-center gap-8 rounded-[2rem] border border-border/70 bg-card p-8 shadow-card md:grid-cols-[1.1fr_1fr] md:p-12">
+          <div>
+            <p className="eyebrow text-primary">Temukan kami</p>
+            <h2 className="mt-3 text-4xl font-semibold md:text-5xl">Sepetak Cafe, Banda Aceh</h2>
+            <p className="mt-4 max-w-md text-muted-foreground">
+              Singgah, nikmati kopinya, lalu bagikan pengalaman Anda. Buka Google Maps untuk melihat titik lokasi
+              kami dan mendapatkan petunjuk arah.
+            </p>
+            <a
+              href={getGoogleMapsLink()}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 font-medium text-primary-foreground shadow-soft transition hover:opacity-95 sm:w-auto"
+            >
+              <MapPin className="h-4 w-4" /> Lihat Petunjuk Arah
+            </a>
+          </div>
+          <div className="overflow-hidden rounded-[1.4rem] border border-border">
+            <iframe
+              title="Peta lokasi Sepetak Cafe"
+              src={`https://www.google.com/maps?q=${SEPETAK_CAFE_COORDS.latitude},${SEPETAK_CAFE_COORDS.longitude}&z=17&output=embed`}
+              className="h-64 w-full border-0 sm:h-80"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+        </div>
       </section>
 
       <section className="mx-auto mt-24 max-w-6xl px-5">
