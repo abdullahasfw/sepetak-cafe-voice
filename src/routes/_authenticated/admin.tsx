@@ -76,7 +76,10 @@ function Admin() {
 
   async function update(id: string, patch: { is_public?: boolean; status?: Status }) {
     const { error } = await supabase.from("reviews").update(patch).eq("id", id);
-    if (error) return toast.error("Gagal menyimpan perubahan.");
+    if (error) {
+      toast.error("Gagal menyimpan perubahan.");
+      return;
+    }
     toast.success("Perubahan disimpan.");
     qc.invalidateQueries({ queryKey: ["admin-reviews"] });
     qc.invalidateQueries({ queryKey: ["public-reviews"] });
