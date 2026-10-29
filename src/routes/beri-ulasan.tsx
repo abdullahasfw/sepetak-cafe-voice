@@ -21,6 +21,8 @@ export const Route = createFileRoute("/beri-ulasan")({
       { name: "description", content: "Beri rating dan saran untuk Sepetak Cafe Banda Aceh. Bisa dikirim secara anonim." },
       { property: "og:title", content: "Berikan Ulasan untuk Sepetak Cafe" },
       { property: "og:description", content: "Bagikan pengalaman Anda dalam satu menit." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: BeriUlasan,

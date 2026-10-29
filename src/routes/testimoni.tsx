@@ -14,6 +14,8 @@ export const Route = createFileRoute("/testimoni")({
       { name: "description", content: "Baca ulasan pelanggan Sepetak Cafe Banda Aceh tentang makanan, minuman, suasana, dan pelayanan." },
       { property: "og:title", content: "Ulasan Pelanggan Sepetak Cafe" },
       { property: "og:description", content: "Cerita pengalaman pelanggan di Sepetak Cafe Banda Aceh." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Testimoni,
